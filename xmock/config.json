@@ -1,0 +1,6 @@
+{
+  "hashtags": ["tech", "news", "sports"],
+  "tweetsPerMinute": 20,
+  "anomalyAfterSeconds": 30,
+  "anomalyDuration": 15
+}
