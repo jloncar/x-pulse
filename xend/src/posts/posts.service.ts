@@ -95,8 +95,8 @@ export class PostsService {
 
   @Interval(3000)
   async detectTrending() {
-    const longWindowSeconds = 30;
-    const shortWindowSeconds = 15;
+    const longWindowSeconds = 90;
+    const shortWindowSeconds = 30;
 
     const anomalies = await this.postModel.aggregate([
       {
@@ -150,17 +150,20 @@ export class PostsService {
       {
         $group: {
           _id: '$hashtag',
+          lastRateIncrease: { $last: '$rateIncrease' },
           avgRateIncrease: { $avg: '$rateIncrease' },
         },
       },
       {
-        $sort: { avgRateIncrease: -1 },
+        $sort: { lastRateIncrease: -1 },
       },
     ]);
 
-    console.log('Rate increases: ', anomalies);
     const trendingCandidate = anomalies[0] ? anomalies[0]['_id'] : null;
     if (this.currentTrending !== trendingCandidate) {
+      if (anomalies[0].lastRateIncrease < 1) {
+        return;
+      }
       this.logger.debug(
         `New trending! ${trendingCandidate} replaces ${this.currentTrending}`,
       );
