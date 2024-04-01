@@ -22,13 +22,19 @@ function generateTweet(hashtags) {
   };
 }
 
-app.post("/", (req, response) => {
+app.get("/", (req, res) => {
+  res.send("OK");
+});
+
+app.get("/stream", (req, response) => {
   console.log("Client connected");
   response.setHeader("Content-Type", "text/event-stream");
   response.setHeader("Cache-Control", "no-cache");
   response.setHeader("Connection", "keep-alive");
 
-  let requestedHashtags = req.body.hashtags || config.hashtags;
+  let requestedHashtags = req.query.hashtags
+    ? req.query.hashtags.split(",")
+    : config.hashtags;
   let normalRate = config.tweetsPerMinute;
   let rate = normalRate;
   let anomalyHashtag = null;
@@ -54,7 +60,7 @@ app.post("/", (req, response) => {
       requestedHashtags[Math.floor(Math.random() * requestedHashtags.length)];
     console.log(`Anomaly time for #${anomalyHashtag}`);
     clearInterval(interval); // Clear the current tweet interval
-    rate = normalRate * 3; // Triple the rate for anomaly
+    rate = normalRate * 3; // Boost anomaly rate
     interval = setInterval(sendTweet, 60000 / rate); // Start a new interval for increased rate
 
     // After anomalyDuration, end the anomaly
