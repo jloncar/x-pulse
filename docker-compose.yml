@@ -9,6 +9,11 @@ services:
       - xpulse
     volumes:
       - mongodb_data:/data/db
+    healthcheck:
+      test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
+      interval: 10s
+      timeout: 10s
+      retries: 3
 
   xmock:
     build:
@@ -23,6 +28,33 @@ services:
       - NODE_VERSION=20
     networks:
       - xpulse
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/ || exit 1"]
+      interval: 10s
+      timeout: 10s
+      retries: 3
+      start_period: 10s
+
+  # xend:
+  #   build:
+  #     context: ./xend
+  #     dockerfile: Dockerfile
+  #   ports:
+  #     - "3002:3000"
+  #   volumes:
+  #     - ./xend:/usr/src/app
+  #   command: npm run start:prod
+  #   environment:
+  #     - NODE_VERSION=20
+  #     - MONGODB_URI=mongodb://mongodb:27017/xend
+  #     - XMOCK_URL=http://xmock:3000
+  #   networks:
+  #     - xpulse
+  #   depends_on:
+  #     mongodb:
+  #       condition: service_healthy
+  #     xmock:
+  #       condition: service_healthy
 
 volumes:
   mongodb_data:

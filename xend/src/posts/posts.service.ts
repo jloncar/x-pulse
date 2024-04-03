@@ -1,5 +1,4 @@
 import { Injectable, Logger } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { InjectConnection, InjectModel } from '@nestjs/mongoose';
 import { Connection, Model } from 'mongoose';
 import { Post } from './schemas/post.schema';
@@ -7,7 +6,7 @@ import { ArchivedPost } from './schemas/archived-post.schema';
 import { EventEmitter2, OnEvent } from '@nestjs/event-emitter';
 import { NewPostDto } from './dto/new-post.dto';
 import { Interval } from '@nestjs/schedule';
-import { EVENT_POST_NEW, TRENDING } from './posts.events';
+import { ANALYTICS, EVENT_POST_NEW, TRENDING } from './posts.events';
 
 // Maximum number of records in posts collection
 export const POSTS_CAP = 100000;
@@ -23,7 +22,6 @@ export class PostsService {
   private currentTrending = null;
 
   constructor(
-    private configService: ConfigService,
     private eventEmitter: EventEmitter2,
     @InjectConnection() private connection: Connection,
     @InjectModel(Post.name) private postModel: Model<Post>,
@@ -170,5 +168,61 @@ export class PostsService {
       this.currentTrending = trendingCandidate;
       this.eventEmitter.emit(TRENDING, this.currentTrending);
     }
+  }
+
+  @Interval(5000)
+  async doAnalytics() {
+    const analyticsRaw = await this.postModel.aggregate([
+      {
+        $match: {
+          createdAt: {
+            $gte: new Date(Date.now() - 5 * 60 * 1000),
+          },
+        },
+      },
+      {
+        $group: {
+          _id: {
+            createdAt: {
+              $dateTrunc: {
+                date: '$createdAt',
+                unit: 'second',
+                binSize: 30, // Rounds down to the nearest 30 seconds
+              },
+            },
+            hashtag: '$hashtag',
+          },
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $group: {
+          _id: '$_id.createdAt',
+          hashtags: {
+            $push: {
+              hashtag: '$_id.hashtag',
+              count: '$count',
+            },
+          },
+        },
+      },
+      {
+        $project: {
+          _id: 0,
+          interval: '$_id',
+          hashtags: 1,
+        },
+      },
+    ]);
+
+    const analytics = analyticsRaw.reduce((acc, doc) => {
+      acc[doc.interval.toISOString()] = doc.hashtags.reduce((acc, ht) => {
+        acc[ht.hashtag] = ht.count;
+        return acc;
+      }, {});
+      return acc;
+    }, {});
+
+    this.eventEmitter.emit(ANALYTICS, analytics);
   }
 }
