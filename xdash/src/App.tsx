@@ -18,15 +18,15 @@ const App: React.FC = () => {
     });
 
     // Subscribe to `updateTrending` event
-    socket.on("updateTrending", (data) => {
+    socket.on("updateTrending", (data: any) => {
       console.log("UPDATE TRENDING", data);
       setCurrentTrending(`#${String(data).toUpperCase()}`);
       setFlash(true);
-      setTimeout(() => setFlash(false), 1000); // Flash for 1 second
+      setTimeout(() => setFlash(false), 3000); // Flash for 3 s
     });
 
     // Subscribe to `updateAnalytics` event
-    socket.on("updateAnalytics", (data) => {
+    socket.on("updateAnalytics", (data: any) => {
       console.log("UPDATE DATA", data);
       setDataset(data);
     });
