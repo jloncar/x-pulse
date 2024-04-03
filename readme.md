@@ -97,14 +97,3 @@ Collection "posts", capped at 100 000 entries after which oldest posts are moved
     "platform": "xmock" | "facebook" ...
 }
 ```
-
-
-
-## Tasks
-| Task                                      | Time      |
-|-------------------------------------------|-----------|
-| Project investigation & setup             | 1h        |
-| XMock: design and implementation          | 2h        |
-| XPulse: backend design and implementation | 6h        |
-| Anomaly (trending detection)              | 2h        |
-| Frontend                                  | 2h        |
