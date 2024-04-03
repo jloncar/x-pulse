@@ -1,5 +1,5 @@
 import React from "react";
-import { Line } from "react-chartjs-2";
+import { Bar } from "react-chartjs-2";
 import "chart.js/auto";
 
 const processData = (data: any) => {
@@ -19,29 +19,36 @@ const processData = (data: any) => {
       {
         label: "News",
         data: newsData,
-        borderColor: "rgba(255, 99, 132, 1)",
-        backgroundColor: "rgba(255, 99, 132, 0.2)",
+        backgroundColor: "rgba(255, 99, 132, 0.5)",
       },
       {
         label: "Tech",
         data: techData,
-        borderColor: "rgba(54, 162, 235, 1)",
-        backgroundColor: "rgba(54, 162, 235, 0.2)",
+        backgroundColor: "rgba(54, 162, 235, 0.5)",
       },
       {
         label: "Sports",
         data: sportsData,
-        borderColor: "rgba(255, 206, 86, 1)",
-        backgroundColor: "rgba(255, 206, 86, 0.2)",
+        backgroundColor: "rgba(255, 206, 86, 0.5)",
       },
     ],
   };
+};
+const options = {
+  scales: {
+    x: {
+      stacked: true,
+    },
+    y: {
+      stacked: true,
+    },
+  },
 };
 
 const TimeSeriesChart = ({ dataset }: { dataset: any }) => {
   const data = processData(dataset);
 
-  return <Line data={data} />;
+  return <Bar data={data} options={options} />;
 };
 
 export default TimeSeriesChart;
